@@ -1,0 +1,219 @@
+#version: '3.8'
+#
+#networks:
+#  backend-network:
+#    driver: bridge
+#
+#services:
+#  ########################
+#  #  API Gateway Service #
+#  ########################
+#  api-gateway:
+#    build:
+#      context: ./API-gateway
+#      dockerfile: Dockerfile
+#    container_name: api-gateway
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - user-service
+#      - trading-service
+#      - account-service
+#    environment:
+#      SPRING_DATA_MONGODB_URI: "mongodb://admin:hw445Rl1pEAXqhti@cluster-1-shard-00-00.rylgk.mongodb.net:27017,cluster-1-shard-00-01.rylgk.mongodb.net:27017,cluster-1-shard-00-02.rylgk.mongodb.net:27017/user-database?replicaSet=atlas-vamz5w-shard-0&authSource=admin&retryWrites=true&w=majority&ssl=false"
+##    dns:
+##      - 8.8.8.8
+##      - 1.1.1.1
+#
+#  ######################
+#  #  User-Service      #
+#  ######################
+#  user-service:
+#    build:
+#      context: ./user-service
+#      dockerfile: Dockerfile
+#    container_name: user-service
+#    expose:
+#      - "8081"
+#    environment:
+#      SPRING_DATA_MONGODB_URI: "mongodb://admin:hw445Rl1pEAXqhti@cluster-1-shard-00-00.rylgk.mongodb.net:27017,cluster-1-shard-00-01.rylgk.mongodb.net:27017,cluster-1-shard-00-02.rylgk.mongodb.net:27017/user-database?ssl=true&replicaSet=atlas-vamz5w-shard-0&authSource=admin&retryWrites=true&w=majority"
+##    dns:
+##      - 8.8.8.8
+##      - 1.1.1.1
+#
+#  ######################
+#  #  Account-Service   #
+#  ######################
+#  account-service:
+#    build:
+#      context: ./account-service
+#      dockerfile: Dockerfile
+#    container_name: account-service
+#    expose:
+#      - "8083"
+#  #    dns:
+#  #      - 8.8.8.8
+#  #      - 1.1.1.1
+#
+#  ######################
+#  #  Trading-Service   #
+#  ######################
+#  trading-service:
+#    build:
+#      context: ./trading-service
+#      dockerfile: Dockerfile
+#    container_name: trading-service
+#    expose:
+#      - "8084"
+##    dns:
+##      - 8.8.8.8
+##      - 1.1.1.1
+
+
+
+version: '3.8'
+
+networks:
+  backend-network:
+    driver: bridge
+
+services:
+  ########################
+  #  API Gateway Service #
+  ########################
+  api-gateway:
+    build:
+      context: API-gateway
+      dockerfile: API-gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080" # Map host port 8080 to container port 8080
+    networks:
+      - backend-network
+    depends_on:
+      - user-service
+      - account-service
+      - trading-service
+      - saga-orchestrator-service
+      - market-data-service
+      - order-service
+    environment:
+      # Override URIs to use service names instead of localhost
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: "http://user-service:8081"        # Route 0: user-service
+      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: "http://account-service:8083"     # Route 1: account-service
+      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: "http://trading-service:8084"     # Route 2: trading-service
+      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: "http://kafka-management-service:8085" # Route 3: kafka-management-service
+      SPRING_CLOUD_GATEWAY_ROUTES_4_URI: "ws://market-data-service:8088"   # Route 4: market_data_websocket
+      SPRING_CLOUD_GATEWAY_ROUTES_5_URI: "http://market-data-service:8088" # Route 5: market-data-service (HTTP)
+      SPRING_CLOUD_GATEWAY_ROUTES_6_URI: "http://order-service:8087"       # Route 6: order-service
+
+      # Original MongoDB URI (verify if needed for gateway)
+      SPRING_DATA_MONGODB_URI: "mongodb://admin:hw445Rl1pEAXqhti@cluster-1-shard-00-00.rylgk.mongodb.net:27017,cluster-1-shard-00-01.rylgk.mongodb.net:27017,cluster-1-shard-00-02.rylgk.mongodb.net:27017/user-database?replicaSet=atlas-vamz5w-shard-0&authSource=admin&retryWrites=true&w=majority&ssl=false"
+
+  #    dns:
+  #      - 8.8.8.8
+  #      - 1.1.1.1
+
+  ######################
+  #  User-Service      #
+  ######################
+  user-service:
+    build:
+      context: user-service
+      dockerfile: user-service/Dockerfile
+    container_name: user-service
+    expose:
+      - "8081" # Expose port internally on the network
+    networks:
+      - backend-network
+    environment:
+      SPRING_DATA_MONGODB_URI: "mongodb://admin:hw445Rl1pEAXqhti@cluster-1-shard-00-00.rylgk.mongodb.net:27017,cluster-1-shard-00-01.rylgk.mongodb.net:27017,cluster-1-shard-00-02.rylgk.mongodb.net:27017/user-database?ssl=true&replicaSet=atlas-vamz5w-shard-0&authSource=admin&retryWrites=true&w=majority"
+  #    dns:
+  #      - 8.8.8.8
+  #      - 1.1.1.1
+
+  ######################
+  #  Account-Service   #
+  ######################
+  account-service:
+    build:
+      context: account-service
+      dockerfile: account-service/Dockerfile
+    container_name: account-service
+    expose:
+      - "8083" # Expose port internally on the network
+    networks:
+      - backend-network
+    # Add environment variables if needed (e.g., database connection)
+    # environment:
+    #   SOME_VARIABLE: some_value
+  #    dns:
+  #      - 8.8.8.8
+  #      - 1.1.1.1
+
+  ######################
+  #  Trading-Service   #
+  ######################
+  trading-service:
+    build:
+      context: trading-service
+      dockerfile: trading-service/Dockerfile
+    container_name: trading-service
+    expose:
+      - "8084" # Expose port internally on the network
+    networks:
+      - backend-network
+    # Add environment variables if needed
+    # environment:
+    #   SOME_VARIABLE: some_value
+  #    dns:
+  #      - 8.8.8.8
+  #      - 1.1.1.1
+
+  ###################################
+  #  Saga-Orchestrator-Service      #
+  ###################################
+  saga-orchestrator-service:
+    build:
+      context: saga-orchestrator-service # Assuming this path exists
+      dockerfile: saga-orchestrator-service/Dockerfile
+    container_name: saga-orchestrator-service
+    expose:
+      - "8085" # Expose port internally on the network
+    networks:
+      - backend-network
+    # Add environment variables if needed (e.g., Kafka brokers)
+    # environment:
+    #   SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+  ##########################
+  #  Market-Data-Service   #
+  ##########################
+  market-data-service:
+    build:
+      context: market-data-service # Assuming this path exists
+      dockerfile: market-data-service/Dockerfile
+    container_name: market-data-service
+    expose:
+      - "8088" # Expose port internally (handles both HTTP and WS)
+    networks:
+      - backend-network
+    # Add environment variables if needed
+    # environment:
+    #   SOME_VARIABLE: some_value
+
+  ######################
+  #  Order-Service     #
+  ######################
+  order-service:
+    build:
+      context: order-service # Assuming this path exists
+      dockerfile: order-service/Dockerfile
+    container_name: order-service
+    expose:
+      - "8087" # Expose port internally on the network
+    networks:
+      - backend-network
+    # Add environment variables if needed (e.g., database connection)
+    # environment:
+    #  SPRING_DATA_MONGODB_URI: ...

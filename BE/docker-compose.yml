@@ -83,8 +83,8 @@ services:
   ########################
   api-gateway:
     build:
-      context: API-gateway
-      dockerfile: API-gateway/Dockerfile
+      context: ./API-gateway
+      dockerfile: Dockerfile
     container_name: api-gateway
     ports:
       - "8080:8080" # Map host port 8080 to container port 8080
@@ -119,8 +119,8 @@ services:
   ######################
   user-service:
     build:
-      context: user-service
-      dockerfile: user-service/Dockerfile
+      context: ./user-service
+      dockerfile: Dockerfile
     container_name: user-service
     expose:
       - "8081" # Expose port internally on the network
@@ -137,8 +137,8 @@ services:
   ######################
   account-service:
     build:
-      context: account-service
-      dockerfile: account-service/Dockerfile
+      context: ./account-service
+      dockerfile: Dockerfile
     container_name: account-service
     expose:
       - "8083" # Expose port internally on the network
@@ -156,8 +156,8 @@ services:
   ######################
   trading-service:
     build:
-      context: trading-service
-      dockerfile: trading-service/Dockerfile
+      context: ./trading-service
+      dockerfile: Dockerfile
     container_name: trading-service
     expose:
       - "8084" # Expose port internally on the network
@@ -175,8 +175,8 @@ services:
   ###################################
   saga-orchestrator-service:
     build:
-      context: saga-orchestrator-service # Assuming this path exists
-      dockerfile: saga-orchestrator-service/Dockerfile
+      context: ./saga-orchestrator-service # Assuming this path exists
+      dockerfile: Dockerfile
     container_name: saga-orchestrator-service
     expose:
       - "8085" # Expose port internally on the network
@@ -191,8 +191,8 @@ services:
   ##########################
   market-data-service:
     build:
-      context: market-data-service # Assuming this path exists
-      dockerfile: market-data-service/Dockerfile
+      context: ./market-data-service # Assuming this path exists
+      dockerfile: Dockerfile
     container_name: market-data-service
     expose:
       - "8088" # Expose port internally (handles both HTTP and WS)
@@ -207,8 +207,8 @@ services:
   ######################
   order-service:
     build:
-      context: order-service # Assuming this path exists
-      dockerfile: order-service/Dockerfile
+      context: ./order-service # Assuming this path exists
+      dockerfile: Dockerfile
     container_name: order-service
     expose:
       - "8087" # Expose port internally on the network
